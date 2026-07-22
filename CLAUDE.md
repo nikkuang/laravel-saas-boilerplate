@@ -262,6 +262,15 @@ giving DTOs, enums, and business logic their own place:
   block (appended below this file) is machine-generated and app-specific —
   hand-written conventions stay above it, and the generator repo's copy of
   this file deliberately omits it.
+- `composer run sync` regenerates the API contract artifacts (Scramble
+  `openapi.json` + generated TypeScript types) — run it after route or
+  DTO/enum changes; the Bruno collection stays a manual re-sync.
+  `php artisan app:fresh` resets the local world (fresh DB + seeds, flushed
+  Redis queue/Horizon state, `dev@example.com`/`password` devtools login)
+  and refuses to run in production.
+- IDE autocomplete comes from `barryvdh/laravel-ide-helper`, regenerated on
+  `composer update` (post-update-cmd; meta needs the raised memory limit).
+  The three generated files stay gitignored — never commit them.
 - `php artisan app:doctor` prints the stack checklist (green check / red X
   per service, tool, and config). **When the stack changes — new service,
   dev tool, or gate — add a matching check to
@@ -353,6 +362,20 @@ as the API's `error_code` i18n split.
   reads `config('...')`. An `env()` call outside config returns `null` the
   moment `php artisan config:cache` runs in production — the classic
   "works locally, null in prod" bug.
+
+## Commits
+
+- **Conventional Commits, enforced by the commit-msg hook:**
+  `<type>(<optional scope>): <imperative summary ≤72 chars>`, with types
+  `feat fix docs style refactor perf test build ci chore revert`. Scope is
+  the area touched (`api`, `devtools`, `auth`, `queue`, `deps`, …).
+- **The pre-commit hook runs the CI checks locally** — Pint + Larastan +
+  Pest when PHP is staged, ESLint + Prettier checks when JS/TS is staged.
+  `--no-verify` is an emergency hatch, not a workflow; CI still enforces
+  everything.
+- Hooks live in `.githooks/` and activate via
+  `git config core.hooksPath .githooks` (done automatically by
+  `composer run setup`; a manual step on Path A in the README).
 
 ## Testing
 

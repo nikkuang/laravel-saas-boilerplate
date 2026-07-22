@@ -304,6 +304,17 @@ section of BOILERPLATE.md:
 - [ ] Run Pint + Larastan (`max`) + Pest before commit (optionally a
       pre-commit hook) — Larastan locally enforces the strict-typing rules
 - [ ] GitHub Actions workflow: run Pest + Pint + Larastan on every PR
+- [ ] Committed `.githooks/`: pre-commit (Pint --dirty + Larastan + Pest when
+      PHP staged; ESLint/Prettier checks when JS/TS staged) and commit-msg
+      (Conventional Commits regex, merge/fixup exempt). Activate via
+      `git config core.hooksPath .githooks` in `composer run setup` and as a
+      manual README step; document `--no-verify` as emergency-only
+- [ ] DX commands: `composer run sync` (scramble:export +
+      typescript:transform), `app:fresh` local reset (refuses production;
+      seeds dev@example.com devtools login), and
+      `barryvdh/laravel-ide-helper` on post-update-cmd (meta needs
+      `-d memory_limit=512M`; generated files gitignored). Doctor rows for
+      hooks + ide-helper
 - [ ] Confirm CI fails on a deliberately broken test (sanity check the
       pipeline actually works)
 
