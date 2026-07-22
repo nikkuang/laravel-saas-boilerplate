@@ -254,6 +254,19 @@ giving DTOs, enums, and business logic their own place:
 - Recording: everything outside production; production records only failures,
   slow queries, and monitored entries. `telescope:prune` is on the scheduler —
   keep it there, or `telescope_entries` grows unbounded.
+- `php artisan app:doctor` prints the stack checklist (green check / red X
+  per service, tool, and config). **When the stack changes — new service,
+  dev tool, or gate — add a matching check to
+  `app/Console/Commands/Doctor.php` in the same PR.** Required rows gate the
+  exit code (deploy-friendly); optional rows (Xdebug, a running Horizon,
+  seeded developer) never do.
+- Step debugging is **Xdebug**, with committed `.vscode/launch.json` configs
+  (host PHP, Sail container, current Pest file — port 9003). The Sail image
+  ships Xdebug (`SAIL_XDEBUG_MODE=develop,debug`); host machines install it
+  per-dev (`pecl install xdebug`) with `xdebug.mode=debug,develop` and
+  `xdebug.start_with_request=trigger` — trigger mode keeps un-debugged
+  requests at full speed. Don't commit machine-specific paths into
+  launch.json.
 - Pulse (`/pulse`) and Horizon (`/horizon`) are installed behind the same
   `EnsureDeveloper` middleware, with nav links in the `/devtools` panel.
   `horizon:snapshot` runs on the scheduler (queue metrics); Pulse is disabled

@@ -352,6 +352,16 @@ section of BOILERPLATE.md:
       session gets 200. (Note: `actingAs($dev, 'developer')` also switches
       the default guard — reset with `auth()->shouldUse('web')` to mirror
       real requests.)
+- [ ] `app:doctor` command: ✓/✗ checklist of the whole stack (PHP version,
+      APP_KEY, config cache, DB, Redis, queue, SMTP/Mailpit, Telescope,
+      Pulse, Horizon installed+running, Xdebug, seeded developer). Required
+      rows drive the exit code; keep its checks in sync with stack changes.
+- [ ] Step debugging: commit `.vscode/launch.json` (host + Sail-container +
+      Pest-file configs, port 9003; carve it out of .gitignore with
+      `/.vscode/*` + `!/.vscode/launch.json`). Sail's image ships Xdebug
+      (`SAIL_XDEBUG_MODE=develop,debug` in .env); host machines install
+      per-dev via `pecl install xdebug` with `xdebug.mode=debug,develop` +
+      `xdebug.start_with_request=trigger`.
 - [ ] Error monitoring is **deferred (no budget)** — do not install/wire it
       in v1. When added: Sentry Laravel SDK with DSN pointed at self-hosted
       GlitchTip (swap to hosted later via env var, no code change). Laravel
