@@ -398,7 +398,11 @@ section of BOILERPLATE.md:
       hooks → .env/key-if-missing → sqlite touch → sail services →
       migrate --seed (seeder must be idempotent and seed the local
       dev@example.com developer) → npm install/build. README Path A becomes
-      clone + setup + dev
+      clone + setup + dev. Guard production two ways: a pre-install
+      `getenv('APP_ENV')` shell check (exported env) plus an
+      `app:ensure-development` artisan command after `.env` exists (boots the
+      framework, so it also catches a `.env`-only production flag that
+      getenv can't see)
 - [ ] README "Production release" section: --no-dev optimized install,
       npm ci build, migrate --force, config/route/view/event cache,
       horizon:terminate; first-deploy AppSettingsSeeder +
