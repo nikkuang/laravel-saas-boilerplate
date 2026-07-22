@@ -131,6 +131,12 @@ giving DTOs, enums, and business logic their own place:
   structure in `resources/js/Pages/App/`.
 - Marketing/public pages: Blade, in `resources/views/marketing/`. Keep JS
   minimal — Alpine.js only, no Vue bundle on these pages.
+- **Links from an Inertia page to a Blade route (or vice-versa) must be a
+  plain `<a>` / full page load — never Inertia's `<Link>`.** `<Link>` does a
+  client-side XHR expecting an Inertia JSON response; pointed at a Blade route
+  (e.g. `home()` → `/`, a marketing page) it receives HTML and pops Inertia's
+  error modal instead of navigating. The auth-layout logos link home this way
+  (`<a :href="home().url">`). Blade→app links are already full loads.
 - Don't introduce a new state management pattern — Pinia is the only store
   layer. Don't reach for Vuex, don't roll custom reactive state for
   cross-component concerns.
