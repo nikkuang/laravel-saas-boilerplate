@@ -382,6 +382,11 @@ section of BOILERPLATE.md:
       publishes the compose file (PostgreSQL 17 + Redis + Mailpit, ports
       forwarded to localhost; the pgsql service mounts Sail's
       create-testing-database.sql so a `testing` DB exists for the suite).
+      **Bring services up with `sail up -d --wait`** (not bare `-d`) in the
+      setup/dev scripts and give Postgres a healthcheck with a `start_period`
+      — `up -d` returns when the container *starts*, not when Postgres accepts
+      connections, so a bare `-d` races `migrate` against first-boot initdb and
+      fails with "server closed the connection unexpectedly".
       `.env` points the host at `127.0.0.1`; the `laravel.test` service
       overrides `DB_HOST`/`REDIS_HOST`/`MAIL_HOST` to the Docker service names
       so container-run commands (`./vendor/bin/sail artisan`) connect too.
