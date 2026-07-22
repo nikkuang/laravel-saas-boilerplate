@@ -45,8 +45,11 @@ rather than silently deviating.
       **Database is PostgreSQL, not SQLite** — dev/CI/prod all run Postgres so
       there's no driver skew (SQLite's single-writer locking caused
       intermittent cached-object corruption under concurrent
-      web+worker+Pulse access). `DB_CONNECTION=pgsql`, host `127.0.0.1` on
-      Path A / `pgsql` on Path B.
+      web+worker+Pulse access). `DB_CONNECTION=pgsql`; keep `.env`
+      host-oriented (`127.0.0.1`) and let the `laravel.test` compose service
+      override `DB_HOST`/`REDIS_HOST`/`MAIL_HOST` to the service names, so one
+      `.env` works both host-run (Path A) and container-run (Path B) —
+      Laravel's immutable dotenv won't overwrite a real env var.
 - [ ] Configure Pint (enforce `declare(strict_types=1)` + native type hints)
       + Larastan at **`max` level** — a missing/loose type fails CI. Full type
       coverage and typed DTOs over associative arrays at layer boundaries (see
@@ -378,7 +381,10 @@ section of BOILERPLATE.md:
 - [ ] Local services via Sail: `php artisan sail:install --with=pgsql,redis,mailpit`
       publishes the compose file (PostgreSQL 17 + Redis + Mailpit, ports
       forwarded to localhost; the pgsql service mounts Sail's
-      create-testing-database.sql so a `testing` DB exists for the suite). Point `.env` at 127.0.0.1 when the app runs on the host;
+      create-testing-database.sql so a `testing` DB exists for the suite).
+      `.env` points the host at `127.0.0.1`; the `laravel.test` service
+      overrides `DB_HOST`/`REDIS_HOST`/`MAIL_HOST` to the Docker service names
+      so container-run commands (`./vendor/bin/sail artisan`) connect too.
       `MAIL_MAILER=smtp` port 1025, Mailpit UI on 8025, `REDIS_CLIENT=predis`.
       Watch installer collateral: `horizon:install` strips
       `declare(strict_types=1)` from `bootstrap/providers.php`, and
