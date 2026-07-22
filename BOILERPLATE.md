@@ -702,6 +702,12 @@ introduced.
 - [ ] Horizon running in every environment (`php artisan horizon` under
       Supervisor/systemd) — mail/notifications are queued on Redis, so a
       dead Horizon means nothing sends.
+- [ ] Release steps on every deploy: `composer install --no-dev
+      --optimize-autoloader`, `npm ci && npm run build`, `migrate --force`,
+      config/route/view/event cache, `horizon:terminate`. First deploy also
+      seeds AppSettingsSeeder and creates a real devtools developer
+      (`app:create-developer`); `composer run setup` is dev-only and refuses
+      to run in production.
 - [ ] Billing: deferred. When built, goes behind the app-owned
       `PaymentGateway` interface — never direct Cashier. Webhook handler
       verifies signature + is idempotent on provider event ID.

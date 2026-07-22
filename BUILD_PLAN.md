@@ -393,6 +393,16 @@ section of BOILERPLATE.md:
 
 - [ ] Copy `CLAUDE.md` (standing conventions) into repo root
 - [ ] Copy `BOILERPLATE.md` into repo root or `/docs`
+- [ ] `composer run setup` = the complete, idempotent dev bootstrap
+      (env-guarded against production; ends with `app:doctor`): install →
+      hooks → .env/key-if-missing → sqlite touch → sail services →
+      migrate --seed (seeder must be idempotent and seed the local
+      dev@example.com developer) → npm install/build. README Path A becomes
+      clone + setup + dev
+- [ ] README "Production release" section: --no-dev optimized install,
+      npm ci build, migrate --force, config/route/view/event cache,
+      horizon:terminate; first-deploy AppSettingsSeeder +
+      app:create-developer
 - [ ] README with setup instructions for a new dev pulling this repo fresh —
       two explicit paths: hybrid (host PHP + `sail up -d redis mailpit` for
       services; the default) and full Sail (no host PHP; container hostnames
