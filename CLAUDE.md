@@ -262,6 +262,11 @@ giving DTOs, enums, and business logic their own place:
   block (appended below this file) is machine-generated and app-specific —
   hand-written conventions stay above it, and the generator repo's copy of
   this file deliberately omits it.
+- `composer run dev` is the one-command local start: it brings up the Sail
+  services (Redis, Mailpit) and runs the concurrent dev processes. Horizon —
+  not `queue:listen` — is the queue worker (Horizon's own `dev` integration
+  swaps it in), so local matches production and the /devtools Horizon
+  dashboard is live; restart the runner to pick up job-class changes.
 - `composer run sync` regenerates the API contract artifacts (Scramble
   `openapi.json` + generated TypeScript types) — run it after route or
   DTO/enum changes; the Bruno collection stays a manual re-sync.

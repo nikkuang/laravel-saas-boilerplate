@@ -398,7 +398,10 @@ section of BOILERPLATE.md:
       hooks → .env/key-if-missing → sqlite touch → sail services →
       migrate --seed (seeder must be idempotent and seed the local
       dev@example.com developer) → npm install/build. README Path A becomes
-      clone + setup + dev. Guard production two ways: a pre-install
+      clone + setup + dev, where `composer run dev` brings up the Sail
+      services (redis, mailpit) and runs the concurrent processes (Horizon is
+      already the dev queue worker via Horizon's own `dev` integration — don't
+      re-register it). Guard production two ways: a pre-install
       `getenv('APP_ENV')` shell check (exported env) plus an
       `app:ensure-development` artisan command after `.env` exists (boots the
       framework, so it also catches a `.env`-only production flag that
