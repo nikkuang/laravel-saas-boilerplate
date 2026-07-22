@@ -337,9 +337,12 @@ section of BOILERPLATE.md:
 - [ ] DX commands: `composer run sync` (scramble:export +
       typescript:transform), `app:fresh` local reset (refuses production;
       seeds dev@example.com devtools login), and
-      `barryvdh/laravel-ide-helper` on post-update-cmd (meta needs
-      `-d memory_limit=512M`; generated files gitignored). Doctor rows for
-      hooks + ide-helper
+      `barryvdh/laravel-ide-helper`. Put its generation in a shared composer
+      script called from **both** `post-update-cmd` **and** `setup` — a fresh
+      clone runs `composer install` (which fires post-autoload-dump, not
+      post-update-cmd), so wiring it only to post-update-cmd leaves new
+      projects with no IDE helpers. Meta needs `-d memory_limit=512M`;
+      generated files gitignored. Doctor rows for hooks + ide-helper
 - [ ] Confirm CI fails on a deliberately broken test (sanity check the
       pipeline actually works)
 
