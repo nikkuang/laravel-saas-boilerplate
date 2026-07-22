@@ -137,6 +137,17 @@ giving DTOs, enums, and business logic their own place:
   (e.g. `home()` → `/`, a marketing page) it receives HTML and pops Inertia's
   error modal instead of navigating. The auth-layout logos link home this way
   (`<a :href="home().url">`). Blade→app links are already full loads.
+- **Server-side redirects to a Blade route during an Inertia request must use
+  `Inertia::location($url)`, not `redirect($url)`.** A plain redirect is
+  XHR-followed by Inertia into the Blade route → HTML → error modal.
+  `Inertia::location()` returns a 409 + `X-Inertia-Location` so the client does
+  a full-page visit (and a normal redirect for non-Inertia callers). The web
+  logout uses this via a custom Fortify `LogoutResponse` (redirects to `/`).
+- **Marketing Blade pages are theme-aware**, matching the app's light/dark:
+  the layout reads the `appearance` cookie shared by `HandleAppearance` (plus
+  the inline system-detection script) and uses design-system tokens
+  (`bg-background`, `text-foreground`, `text-muted-foreground`,
+  `border-border`, `bg-primary`) — never hardcoded `bg-white`/`text-gray-*`.
 - Don't introduce a new state management pattern — Pinia is the only store
   layer. Don't reach for Vuex, don't roll custom reactive state for
   cross-component concerns.
