@@ -364,7 +364,11 @@ section of BOILERPLATE.md:
       directory + `App\Filament\Devtools\…` namespace, discovery paths
       isolated from Admin's), with a Developers CRUD resource and external nav
       links to the tools. Completely disjoint from app users/admins —
-      `is_admin` grants nothing here.
+      `is_admin` grants nothing here. Give the panel dashboard real ops
+      widgets (a stats overview — developers, pending jobs, failed jobs,
+      Horizon status — fed by a small read-only service, not logic in the
+      widget — plus quick-link cards to Telescope/Pulse/Horizon), not the bare
+      AccountWidget.
 - [ ] `EnsureDeveloper` middleware (redirects to `/devtools/login` unless
       `auth('developer')->check()`) replaces Telescope's stock `Authorize`
       in `config/telescope.php`. Pulse and Horizon reuse this same
@@ -374,8 +378,8 @@ section of BOILERPLATE.md:
       slow queries, scheduled tasks, and monitored tags. Schedule
       `telescope:prune` daily (staging records everything — pruning is what
       bounds the table).
-- [ ] `app:create-developer` artisan command (Laravel Prompts) to seed the
-      first developer per environment.
+- [ ] `app:create-developer` artisan command (Laravel Prompts, with a
+      confirm-password prompt) to seed the first developer per environment.
 - [ ] Password reset on both panels: `->passwordReset()` on each; the
       `/devtools` panel adds `->authPasswordBroker('developers')` with a
       `developers` broker (config/auth.php) + a dedicated
