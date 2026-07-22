@@ -258,6 +258,14 @@ giving DTOs, enums, and business logic their own place:
   `developers` table + Filament panel at `/devtools`, fully disjoint from app
   users and admins (`is_admin` grants nothing here). Seed the first account
   with `php artisan app:create-developer`.
+- **Each Filament panel that uses its own auth guard gets its own password
+  broker + dedicated reset-token table.** Both panels enable `->passwordReset()`;
+  the `/devtools` panel adds `->authPasswordBroker('developers')`, backed by a
+  `developers` broker (`config/auth.php`) and a `developer_password_reset_tokens`
+  table — separate from app users' so a shared email can't collide. Developers
+  have no other login surface, so this is their only self-service recovery;
+  `app:create-developer` remains the CLI fallback. (Admin users can also still
+  recover via the main app's Fortify `/forgot-password`.)
 - `/telescope` (and later `/pulse`, `/horizon`) routes are protected by the
   shared `EnsureDeveloper` middleware — new dev tools reuse it rather than
   inventing a second gate, and get a navigation link in the `/devtools` panel.

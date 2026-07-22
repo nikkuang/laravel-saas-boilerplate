@@ -359,6 +359,13 @@ section of BOILERPLATE.md:
       bounds the table).
 - [ ] `app:create-developer` artisan command (Laravel Prompts) to seed the
       first developer per environment.
+- [ ] Password reset on both panels: `->passwordReset()` on each; the
+      `/devtools` panel adds `->authPasswordBroker('developers')` with a
+      `developers` broker (config/auth.php) + a dedicated
+      `developer_password_reset_tokens` table (separate from app users' so a
+      shared email can't collide). The Developer model already satisfies
+      `CanResetPassword` via `Foundation\Auth\User` + `Notifiable`; Filament's
+      reset notification is `ShouldQueue`. Test the broker isolation.
 - [ ] Local services via Sail: `php artisan sail:install --with=redis,mailpit`
       publishes the compose file (Redis + Mailpit, ports forwarded to
       localhost). Point `.env` at 127.0.0.1 when the app runs on the host;
