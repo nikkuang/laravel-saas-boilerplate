@@ -18,7 +18,7 @@
 | Payments | App-owned `PaymentGateway` interface; Stripe (via Cashier) as first adapter | Deferred to when needed; abstracted so providers are swappable |
 | Feature flags | Laravel Pennant | Staged rollout, kill-switch for risky features |
 | Passkeys | `laravel/passkeys` + Fortify | First-party WebAuthn, behind a Pennant flag |
-| Queues | Database driver (default) | No Redis dependency to boot; Redis+Horizon is the upgrade path |
+| Queues | Redis + Horizon (queue only) | Cache/sessions stay on database; Predis client, Redis via Sail locally |
 
 ## Core principle: shared service/action layer
 
@@ -525,17 +525,19 @@ announcement text, rich media, read-receipt analytics beyond `seen_at`.
 
 ## Queues
 
-Queued by default — the database queue driver, so a new project boots with
-no Redis dependency. Swap to Redis (and then Horizon, which requires Redis)
-when throughput justifies it — Horizon is the upgrade path, not the starting
-point.
+Queued by default — running on **Redis with Horizon** as the supervisor
+(adopted 2026-07-22; the original database-driver default was upgraded when
+Horizon came in). Redis serves the **queue only**: cache and sessions stay on
+the database driver, so Redis isn't load-bearing beyond jobs. Local Redis and
+Mailpit come from the Sail compose file; the Predis client keeps host PHP
+free of the phpredis extension.
 
 - **Mail and notifications are always queued** (`ShouldQueue`), never sent
   synchronously in a request cycle. Email verification and password resets
   are the canonical cases — a request must never block on an SMTP call.
 - `failed_jobs` handling + a retry/backoff policy configured from the start.
-- **Deploy note (the silent-failure trap):** a queue worker
-  (Supervisor/systemd, or Horizon later) must be running in every
+- **Deploy note (the silent-failure trap):** the Horizon process
+  (`php artisan horizon` under Supervisor/systemd) must be running in every
   environment or nothing sends. This belongs in the deploy checklist —
   "works locally, silently broken in prod" is the classic failure here.
 - **Deploy note (second silent-failure trap):** the scheduler cron
@@ -697,8 +699,9 @@ introduced.
       **every environment** behind the `/devtools` developer panel (separate
       `developers` table + guard); production records only failures, slow
       queries, and monitored entries, with `telescope:prune` scheduled.
-- [ ] Queue worker running in every environment (database driver default) —
-      mail/notifications are queued, so a dead worker means nothing sends.
+- [ ] Horizon running in every environment (`php artisan horizon` under
+      Supervisor/systemd) — mail/notifications are queued on Redis, so a
+      dead Horizon means nothing sends.
 - [ ] Billing: deferred. When built, goes behind the app-owned
       `PaymentGateway` interface — never direct Cashier. Webhook handler
       verifies signature + is idempotent on provider event ID.

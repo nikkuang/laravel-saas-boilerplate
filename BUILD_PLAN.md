@@ -257,12 +257,13 @@ several decisions here are deliberate and easy to get subtly wrong.
 ## Phase 6 — Queues & soft deletes
 
 **Queues:**
-- [ ] Database queue driver configured (no Redis dependency), `failed_jobs`
-      table + retry/backoff policy
+- [ ] Redis queue driver + Horizon (Predis client — no phpredis extension
+      assumed), `failed_jobs` table + retry/backoff policy; cache and
+      sessions stay on the database driver
 - [ ] Mark mail + notifications `ShouldQueue` — email verification and
       password reset must be queued, not synchronous
-- [ ] Deploy docs note: a queue worker MUST run in every environment or
-      nothing sends (Supervisor/systemd; Horizon later if moving to Redis)
+- [ ] Deploy docs note: Horizon MUST run in every environment or nothing
+      sends (`php artisan horizon` under Supervisor/systemd)
 - [ ] Deploy docs note: the scheduler cron (`* * * * * php artisan
       schedule:run`) MUST run in every environment, or `app:purge-soft-deleted`
       (and all scheduled commands) silently never fire
@@ -332,6 +333,20 @@ section of BOILERPLATE.md:
       bounds the table).
 - [ ] `app:create-developer` artisan command (Laravel Prompts) to seed the
       first developer per environment.
+- [ ] Local services via Sail: `php artisan sail:install --with=redis,mailpit`
+      publishes the compose file (Redis + Mailpit, ports forwarded to
+      localhost). Point `.env` at 127.0.0.1 when the app runs on the host;
+      `MAIL_MAILER=smtp` port 1025, Mailpit UI on 8025, `REDIS_CLIENT=predis`.
+      Watch installer collateral: `horizon:install` strips
+      `declare(strict_types=1)` from `bootstrap/providers.php`, and
+      `sail:install` clobbers the phpunit sqlite `:memory:` DB env — restore
+      both.
+- [ ] `composer require laravel/horizon laravel/pulse predis/predis`, publish
+      Pulse, migrate. Both dashboards go behind `EnsureDeveloper` via their
+      config `middleware` arrays; the `viewHorizon` gate checks the
+      `developer` guard; nav links added to the /devtools panel;
+      `horizon:snapshot` scheduled every five minutes; `PULSE_ENABLED=false`
+      in phpunit (recording off, routes stay registered).
 - [ ] Feature tests: guests, app users, and `/admin` admins are all
       redirected off `/telescope` and `/devtools`; a `developer`-guard
       session gets 200. (Note: `actingAs($dev, 'developer')` also switches

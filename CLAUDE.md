@@ -234,9 +234,12 @@ giving DTOs, enums, and business logic their own place:
 - Mail and notifications are **always** `ShouldQueue` — never send email
   (verification, password reset, any notification) synchronously in a
   request cycle.
-- Default driver is database (no Redis assumed). Don't add Redis/Horizon as
-  a hard dependency without raising it — it changes every environment's infra
-  requirements.
+- The queue runs on **Redis with Horizon** as the worker (adopted
+  2026-07-22) — local Redis comes from the Sail compose file, and Predis is
+  the client (no phpredis extension assumed). Cache and sessions deliberately
+  stay on the database driver; don't move them to Redis without raising it.
+- Local mail goes to **Mailpit** (Sail service): SMTP on port 1025, web UI on
+  8025. Never point local dev at a real SMTP relay.
 
 ## Dev tools & observability
 
@@ -251,9 +254,10 @@ giving DTOs, enums, and business logic their own place:
 - Recording: everything outside production; production records only failures,
   slow queries, and monitored entries. `telescope:prune` is on the scheduler —
   keep it there, or `telescope_entries` grows unbounded.
-- Pulse is planned (database driver is fine). Horizon waits on a deliberate
-  Redis decision — the queue stays on the database driver until that's raised
-  explicitly.
+- Pulse (`/pulse`) and Horizon (`/horizon`) are installed behind the same
+  `EnsureDeveloper` middleware, with nav links in the `/devtools` panel.
+  `horizon:snapshot` runs on the scheduler (queue metrics); Pulse is disabled
+  in tests (`PULSE_ENABLED=false`) but its routes stay registered.
 
 ## Events & observers
 
