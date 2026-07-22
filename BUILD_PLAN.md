@@ -382,7 +382,11 @@ section of BOILERPLATE.md:
 
 - [ ] Copy `CLAUDE.md` (standing conventions) into repo root
 - [ ] Copy `BOILERPLATE.md` into repo root or `/docs`
-- [ ] README with setup instructions for a new dev pulling this repo fresh
+- [ ] README with setup instructions for a new dev pulling this repo fresh —
+      two explicit paths: hybrid (host PHP + `sail up -d redis mailpit` for
+      services; the default) and full Sail (no host PHP; container hostnames
+      in .env, everything via `./vendor/bin/sail`). State Docker Desktop as a
+      prerequisite and end setup with `app:create-developer` + `app:doctor`
 - [ ] Tag/release as `v1.0.0` of the boilerplate itself, so future
       boilerplate improvements are versioned and back-portable to projects
       that already forked it
