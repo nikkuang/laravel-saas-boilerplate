@@ -74,6 +74,9 @@ rather than silently deviating.
       directory per panel from the start
 - [ ] Admin bootstrapping: Filament panel-access check (`canAccessPanel()` /
       gate — who is allowed into `/admin`) + a seeder for the first admin user
+      (local only) + an `app:create-admin` command (Laravel Prompts,
+      confirm-password) that creates a new admin **or** promotes an existing
+      user — the real-environment path since the seeded admin is local-only
 - [ ] Verify: guest → Blade page loads with zero Vue/Inertia JS in the
       network tab
 
