@@ -254,6 +254,14 @@ giving DTOs, enums, and business logic their own place:
 - Recording: everything outside production; production records only failures,
   slow queries, and monitored entries. `telescope:prune` is on the scheduler —
   keep it there, or `telescope_entries` grows unbounded.
+- **Laravel Boost** (dev-only) is the AI/MCP layer: `.mcp.json` registers
+  `boost:mcp` for Claude Code, and per-stack agent skills live in
+  `.claude/skills` / `.github/skills` / `.agents/skills`. After adding or
+  upgrading a major package, run `php artisan boost:update` so the generated
+  `<laravel-boost-guidelines>` block and skills track the real stack. That
+  block (appended below this file) is machine-generated and app-specific —
+  hand-written conventions stay above it, and the generator repo's copy of
+  this file deliberately omits it.
 - `php artisan app:doctor` prints the stack checklist (green check / red X
   per service, tool, and config). **When the stack changes — new service,
   dev tool, or gate — add a matching check to

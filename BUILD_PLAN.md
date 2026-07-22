@@ -362,6 +362,14 @@ section of BOILERPLATE.md:
       (`SAIL_XDEBUG_MODE=develop,debug` in .env); host machines install
       per-dev via `pecl install xdebug` with `xdebug.mode=debug,develop` +
       `xdebug.start_with_request=trigger`.
+- [ ] `composer require laravel/boost --dev` +
+      `php artisan boost:install --guidelines --skills --mcp -n`: registers
+      the Boost MCP server (.mcp.json) and generates version-pinned AI
+      guidelines/skills for detected agents. The `<laravel-boost-guidelines>`
+      block it appends to CLAUDE.md is machine-generated — keep hand-written
+      conventions above it (the generator's CLAUDE.md copy omits the block).
+      Re-run `boost:update` after major package changes. Add the optional
+      doctor row.
 - [ ] Error monitoring is **deferred (no budget)** — do not install/wire it
       in v1. When added: Sentry Laravel SDK with DSN pointed at self-hosted
       GlitchTip (swap to hosted later via env var, no code change). Laravel
