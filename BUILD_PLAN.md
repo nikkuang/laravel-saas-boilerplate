@@ -50,7 +50,11 @@ rather than silently deviating.
       middleware)
 - [ ] `routes/api.php` — `/api/v1` prefix, `auth:sanctum` group
 - [ ] Filament installed on `/admin`, confirm it boots independently of
-      Inertia routes
+      Inertia routes. **Move the default panel's resources/pages under
+      `app/Filament/Admin/`** (namespace `App\Filament\Admin\…`, and point
+      the panel provider's `discoverResources`/`discoverPages`/`discoverWidgets`
+      there) so it isn't the odd one out once a second panel exists — one
+      directory per panel from the start
 - [ ] Admin bootstrapping: Filament panel-access check (`canAccessPanel()` /
       gate — who is allowed into `/admin`) + a seeder for the first admin user
 - [ ] Verify: guest → Blade page loads with zero Vue/Inertia JS in the
@@ -330,9 +334,11 @@ section of BOILERPLATE.md:
       deletes — deleting a developer is an access revocation and must be
       immediate) + `developer` session guard/provider in `config/auth.php`,
       then a **second Filament panel** at `/devtools`
-      (`->authGuard('developer')`) with a Developers CRUD resource and
-      external nav links to the tools. Completely disjoint from app
-      users/admins — `is_admin` grants nothing here.
+      (`->authGuard('developer')`) under `app/Filament/Devtools/` (its own
+      directory + `App\Filament\Devtools\…` namespace, discovery paths
+      isolated from Admin's), with a Developers CRUD resource and external nav
+      links to the tools. Completely disjoint from app users/admins —
+      `is_admin` grants nothing here.
 - [ ] `EnsureDeveloper` middleware (redirects to `/devtools/login` unless
       `auth('developer')->check()`) replaces Telescope's stock `Authorize`
       in `config/telescope.php`. Pulse and Horizon reuse this same

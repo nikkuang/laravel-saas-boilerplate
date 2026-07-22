@@ -50,11 +50,21 @@ giving DTOs, enums, and business logic their own place:
 | `app/Enums/` | Native PHP enums (`ApiErrorCode`, `AnnouncementType`, …) |
 | `app/Support/` | Generic, stateless, domain-agnostic helpers — utility classes, `Str`/`Collection` macros, reusable traits, small value objects |
 | `app/Policies/` | Authorization policies (framework default) |
+| `app/Filament/{Panel}/` | Filament resources/pages, **one directory per panel** (`Admin/`, `Devtools/`) — never the top-level `app/Filament/Resources` |
 
 - **`app/Support` is not a junk drawer.** If a class knows anything about the
   domain (subscriptions, users, announcements) or carries dependencies, it's a
   Service/Action, not Support. Support holds only what would be equally at home
   in any Laravel project.
+- **Each Filament panel owns a directory** under `app/Filament/{Panel}/`
+  (e.g. `app/Filament/Admin/Resources`, `app/Filament/Devtools/Resources`),
+  with a matching `App\Filament\{Panel}\…` namespace and the panel
+  provider's `discoverResources`/`discoverPages` pointed at it. Panels
+  **must not share discovery directories** (a shared dir leaks each
+  panel's resources into the other). Do **not** leave the default panel at
+  the top-level `app/Filament/Resources` — move it under `Admin/` so every
+  panel is symmetric. `make:filament-resource` is panel-aware — pass
+  `--panel=` (or answer the prompt) so files land in the right tree.
 - **Helpers are class-based and typed — no global `helpers.php`.** Use `final`
   classes with static methods (or invokable classes): `App\Support\Money::format(...)`,
   never a global `money_format()`. Global functions are namespace-less,
