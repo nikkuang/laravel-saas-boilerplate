@@ -707,8 +707,8 @@ introduced.
       --optimize-autoloader`, `npm ci && npm run build`, `migrate --force`,
       config/route/view/event cache, `horizon:terminate`. First deploy also
       seeds AppSettingsSeeder and creates a real devtools developer
-      (`app:create-developer`); `composer run setup` is dev-only and refuses
-      to run in production.
+      (`app:create-developer`). The local Sail workflow is dev-only (seeds
+      test logins); `app:ensure-development` guards any dev-only script.
 - [ ] Billing: deferred. When built, goes behind the app-owned
       `PaymentGateway` interface — never direct Cashier. Webhook handler
       verifies signature + is idempotent on provider event ID.

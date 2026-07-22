@@ -332,16 +332,18 @@ section of BOILERPLATE.md:
 - [ ] Committed `.githooks/`: pre-commit (Pint --dirty + Larastan + Pest when
       PHP staged; ESLint/Prettier checks when JS/TS staged) and commit-msg
       (Conventional Commits regex, merge/fixup exempt). Activate via
-      `git config core.hooksPath .githooks` in `composer run setup` and as a
-      manual README step; document `--no-verify` as emergency-only
+      `git config core.hooksPath .githooks` as a README bootstrap step (run
+      once per clone); document `--no-verify` as emergency-only. The
+      pre-commit hook runs the triad **inside Sail** (`sail pint` /
+      `sail php vendor/bin/phpstan` / `sail artisan test`).
 - [ ] DX commands: `composer run sync` (scramble:export +
       typescript:transform), `app:fresh` local reset (refuses production;
       seeds dev@example.com devtools login), and
-      `barryvdh/laravel-ide-helper`. Put its generation in a shared composer
-      script called from **both** `post-update-cmd` **and** `setup` — a fresh
-      clone runs `composer install` (which fires post-autoload-dump, not
-      post-update-cmd), so wiring it only to post-update-cmd leaves new
-      projects with no IDE helpers. Meta needs `-d memory_limit=512M`;
+      `barryvdh/laravel-ide-helper` in a shared `ide-helper` composer script
+      called from `post-update-cmd`; the fresh-clone bootstrap also runs
+      `sail composer run ide-helper` explicitly, because `composer install`
+      alone fires post-autoload-dump (not post-update-cmd) and would otherwise
+      leave a new project with no IDE helpers. Meta needs `-d memory_limit=512M`;
       generated files gitignored. Doctor rows for hooks + ide-helper
 - [ ] Confirm CI fails on a deliberately broken test (sanity check the
       pipeline actually works)
@@ -409,10 +411,10 @@ section of BOILERPLATE.md:
       real requests.)
 - [ ] Add a dedicated `horizon` compose service (same image, `command: php
       artisan horizon`, `restart: unless-stopped`, depends_on pgsql+redis) so
-      the queue worker runs whenever the stack is up. Use **plain `horizon`,
-      not `horizon:watch`** — chokidar 4 can't watch across the Docker bind
-      mount, so auto-reload doesn't work in-container; document `sail restart
-      horizon` for job-class changes.
+      the queue worker runs whenever the stack is up. Use **plain
+      `php artisan horizon`** — file-watching auto-reload isn't reliable
+      across the Docker bind mount, so document `sail restart horizon` for
+      job-class changes rather than adding a watcher.
 - [ ] `app:doctor` command: ✓/✗ checklist of the whole stack (PHP version,
       APP_KEY, config cache, DB, Redis, queue, SMTP/Mailpit, Telescope,
       Pulse, Horizon installed+running, Xdebug, seeded developer). Required
@@ -445,20 +447,17 @@ section of BOILERPLATE.md:
 
 - [ ] Copy `CLAUDE.md` (standing conventions) into repo root
 - [ ] Copy `BOILERPLATE.md` into repo root or `/docs`
-- [ ] `composer run setup` = the complete, idempotent dev bootstrap
-      (env-guarded against production; ends with `app:doctor`): install →
-      hooks → .env/key-if-missing → sail services (postgres/redis/mailpit) →
-      migrate --seed (seeder must be idempotent and seed the local
-      dev@example.com developer) → npm install/build. README Path A becomes
-      migrate --seed → npm build. All of this runs **in the container**
-      (`sail artisan …`, `sail composer …`). Bootstrap for a fresh clone with
-      zero host tooling: `docker run --rm -v $(pwd):/var/www/html -w
-      /var/www/html laravelsail/php85-composer composer install`, then
-      `sail up -d` (builds the app image first run) and the setup steps via
-      `sail`. Guard production two ways: a pre-install `getenv('APP_ENV')`
-      shell check (exported env) plus an `app:ensure-development` artisan
-      command after `.env` exists (boots the framework, so it also catches a
-      `.env`-only production flag that getenv can't see)
+- [ ] Fresh-clone bootstrap (single Docker path, zero host tooling):
+      `docker run --rm -v $(pwd):/var/www/html -w /var/www/html
+      laravelsail/php85-composer composer install` → `cp .env.example .env` →
+      `git config core.hooksPath .githooks` → `sail up -d` (builds the app
+      image first run) → `sail artisan key:generate` → `sail artisan migrate
+      --seed` (idempotent seeder; seeds the local dev@example.com developer) →
+      `sail npm install && sail npm run build` → `sail composer run ide-helper`
+      → `sail artisan app:doctor`. No host-run `composer run setup` — the
+      seeder must be idempotent so the bootstrap is re-runnable.
+      `app:ensure-development` (boots the framework; fails when
+      `APP_ENV=production`) guards any dev-only script you add.
 - [ ] README "Production release" section: --no-dev optimized install,
       npm ci build, migrate --force, config/route/view/event cache,
       horizon:terminate; first-deploy AppSettingsSeeder +

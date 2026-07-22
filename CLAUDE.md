@@ -290,11 +290,10 @@ giving DTOs, enums, and business logic their own place:
   container** (queue worker), PostgreSQL, Redis, and Mailpit. Run every
   command through `sail` (`sail artisan …`, `sail composer …`,
   `sail npm …`). There is no host/hybrid path in the docs.
-- The `horizon` service runs **plain `php artisan horizon`** (not
-  `horizon:watch`): chokidar 4 can't watch across the Docker bind mount, so
-  auto-reload doesn't work in-container. After editing a job class, run
-  `sail restart horizon` to pick it up. `restart: unless-stopped` respawns it
-  on crash.
+- The `horizon` service runs **plain `php artisan horizon`**. File-watching
+  auto-reload isn't reliable across the Docker bind mount, so it's not used —
+  after editing a job class, run `sail restart horizon` to pick it up.
+  `restart: unless-stopped` respawns Horizon on crash.
 - `.env` targets the Docker **service names** (`DB_HOST=pgsql`,
   `REDIS_HOST=redis`, `MAIL_HOST=mailpit`) because everything runs
   in-container. CI runs on a host runner, so it rewrites `DB_HOST=127.0.0.1`;
@@ -416,7 +415,7 @@ as the API's `error_code` i18n split.
   everything.
 - Hooks live in `.githooks/` and activate via
   `git config core.hooksPath .githooks` (done automatically by
-  `composer run setup`; a manual step on Path A in the README).
+  the fresh-clone bootstrap in the README, run once per clone).
 
 ## Testing
 
