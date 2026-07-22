@@ -24,13 +24,22 @@ rather than silently deviating.
       assembling manually instead, the `laravel new` + install steps below
       stand as-is. This choice changes how much of Phase 1–2 is already done.
 - [ ] `laravel new` (latest LTS/stable version)
-- [ ] Install: Inertia (Vue 3 adapter), Pinia, Tailwind CSS, Sanctum,
-      Filament, Scramble, Pest, Larastan, Laravel Pint, Laravel
-      Pennant, Laravel Socialite, `laravel/passkeys`,
-      `spatie/laravel-data` (typed DTOs — see "Type strictness & DTOs"),
-      TypeScript + `spatie/laravel-typescript-transformer` (generates TS types
-      from DTOs/Resources for the Vue side)
+- [ ] Install (the deliberate additions beyond the starter kit): Inertia
+      (Vue 3 adapter), Pinia, Tailwind CSS, Sanctum, Filament, Scramble, Pest,
+      Larastan, Laravel Pint, Laravel Pennant, Laravel Socialite,
+      `laravel/passkeys`, `laravel/wayfinder` (+ `@laravel/vite-plugin-wayfinder`
+      — typed route helpers shared with the Vue frontend), `firebase/php-jwt`
+      (verify native Apple/Google **ID tokens** via JWKS in the mobile social
+      flow — see Phase 2), `spatie/laravel-data` (typed DTOs — see "Type
+      strictness & DTOs"), TypeScript + `spatie/laravel-typescript-transformer`
+      (generates TS types from DTOs/Resources for the Vue side)
       (NOT Cashier — billing is deferred, see Phase 6.5)
+- [ ] The Laravel Vue starter kit supplies the rest, deliberately **not**
+      re-listed above: the Vite/TypeScript toolchain, Blade/Alpine marketing
+      deps, the shadcn-vue UI libraries (reka-ui, cva, clsx, tailwind-merge,
+      lucide, sonner, vue-input-otp), and the default dev deps (Pest/PHPUnit,
+      Faker, Mockery, Collision, Pail, Tinker). If assembling manually instead
+      of from the kit, install those too — don't rely on this list for them.
 - [ ] Set up `.env.example` with all required keys documented (DB, mail,
       social login credentials, etc. — no Stripe/Sentry yet, both deferred)
 - [ ] Configure Pint (enforce `declare(strict_types=1)` + native type hints)
