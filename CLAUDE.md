@@ -285,16 +285,24 @@ giving DTOs, enums, and business logic their own place:
   block (appended below this file) is machine-generated and app-specific —
   hand-written conventions stay above it, and the generator repo's copy of
   this file deliberately omits it.
-- `composer run dev` is the one-command local start: it brings up the Sail
-  services (Postgres, Redis, Mailpit) and runs the concurrent dev processes.
-  The queue worker is **`horizon:watch`** (spatie/laravel-horizon-watcher) —
-  Horizon (so local matches production and the /devtools dashboard is live)
-  that **auto-restarts on file changes**, so job edits never run stale worker
-  code. `AppServiceProvider` registers it into the dev runner via
-  `DevCommands` in a `booted()` callback (last word over Horizon's own
-  registration), excepting both `queue` and `horizon`, and adds `--without-tty`
-  (the dev runner has no per-process TTY). Local only; `chokidar` is a dev
-  dependency the watcher needs.
+- **The whole stack runs in Docker via Laravel Sail — one path, no host
+  PHP/Node.** `sail up -d` starts the web app, a dedicated **`horizon`
+  container** (queue worker), PostgreSQL, Redis, and Mailpit. Run every
+  command through `sail` (`sail artisan …`, `sail composer …`,
+  `sail npm …`). There is no host/hybrid path in the docs.
+- The `horizon` service runs **plain `php artisan horizon`** (not
+  `horizon:watch`): chokidar 4 can't watch across the Docker bind mount, so
+  auto-reload doesn't work in-container. After editing a job class, run
+  `sail restart horizon` to pick it up. `restart: unless-stopped` respawns it
+  on crash.
+- `.env` targets the Docker **service names** (`DB_HOST=pgsql`,
+  `REDIS_HOST=redis`, `MAIL_HOST=mailpit`) because everything runs
+  in-container. CI runs on a host runner, so it rewrites `DB_HOST=127.0.0.1`;
+  `phpunit.xml` sets no `DB_HOST` and inherits it from the environment.
+- The pre-commit hook runs the triad **inside Sail** (`sail pint` / `sail php
+  vendor/bin/phpstan` / `sail artisan test`), so it needs the stack up.
+- `composer run sync` regenerates the API contract artifacts (Scramble
+  `openapi.json` + generated TypeScript types) — run it after route or
 - `composer run sync` regenerates the API contract artifacts (Scramble
   `openapi.json` + generated TypeScript types) — run it after route or
   DTO/enum changes; the Bruno collection stays a manual re-sync.

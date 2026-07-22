@@ -381,20 +381,18 @@ section of BOILERPLATE.md:
       shared email can't collide). The Developer model already satisfies
       `CanResetPassword` via `Foundation\Auth\User` + `Notifiable`; Filament's
       reset notification is `ShouldQueue`. Test the broker isolation.
-- [ ] Local services via Sail: `php artisan sail:install --with=pgsql,redis,mailpit`
+- [ ] Local stack via Sail: `php artisan sail:install --with=pgsql,redis,mailpit`
       publishes the compose file (PostgreSQL 17 + Redis + Mailpit, ports
-      forwarded to localhost; the pgsql service mounts Sail's
-      create-testing-database.sql so a `testing` DB exists for the suite).
-      **Bring services up with `sail up -d --wait`** (not bare `-d`) in the
-      setup/dev scripts and give Postgres a healthcheck with a `start_period`
-      — `up -d` returns when the container *starts*, not when Postgres accepts
-      connections, so a bare `-d` races `migrate` against first-boot initdb and
-      fails with "server closed the connection unexpectedly".
-      `.env` points the host at `127.0.0.1`; the `laravel.test` service
-      overrides `DB_HOST`/`REDIS_HOST`/`MAIL_HOST` to the Docker service names
-      so container-run commands (`./vendor/bin/sail artisan`) connect too.
-      `MAIL_MAILER=smtp` port 1025, Mailpit UI on 8025, `REDIS_CLIENT=predis`.
-      Watch installer collateral: `horizon:install` strips
+      forwarded; pgsql mounts Sail's create-testing-database.sql so a `testing`
+      DB exists). **This is a Docker-only, single-path setup** — the whole app
+      runs in containers, so `.env` targets the **service names** directly
+      (`DB_HOST=pgsql`, `REDIS_HOST=redis`, `MAIL_HOST=mailpit`); no host/hybrid
+      path. `MAIL_MAILER=smtp` port 1025, Mailpit UI 8025, `REDIS_CLIENT=predis`.
+      Give Postgres a healthcheck with a `start_period` and bring services up
+      with `--wait` so migrations don't race first-boot initdb ("server closed
+      the connection unexpectedly"). `phpunit.xml` sets **no** `DB_HOST` (it
+      inherits pgsql from `.env`); CI runs on a host runner so it rewrites
+      `DB_HOST=127.0.0.1`. Watch installer collateral: `horizon:install` strips
       `declare(strict_types=1)` from `bootstrap/providers.php`, and
       `sail:install` clobbers the phpunit DB env — restore both.
 - [ ] `composer require laravel/pulse`, publish Pulse, migrate (Horizon +
@@ -409,6 +407,12 @@ section of BOILERPLATE.md:
       session gets 200. (Note: `actingAs($dev, 'developer')` also switches
       the default guard — reset with `auth()->shouldUse('web')` to mirror
       real requests.)
+- [ ] Add a dedicated `horizon` compose service (same image, `command: php
+      artisan horizon`, `restart: unless-stopped`, depends_on pgsql+redis) so
+      the queue worker runs whenever the stack is up. Use **plain `horizon`,
+      not `horizon:watch`** — chokidar 4 can't watch across the Docker bind
+      mount, so auto-reload doesn't work in-container; document `sail restart
+      horizon` for job-class changes.
 - [ ] `app:doctor` command: ✓/✗ checklist of the whole stack (PHP version,
       APP_KEY, config cache, DB, Redis, queue, SMTP/Mailpit, Telescope,
       Pulse, Horizon installed+running, Xdebug, seeded developer). Required
@@ -446,27 +450,27 @@ section of BOILERPLATE.md:
       hooks → .env/key-if-missing → sail services (postgres/redis/mailpit) →
       migrate --seed (seeder must be idempotent and seed the local
       dev@example.com developer) → npm install/build. README Path A becomes
-      clone + setup + dev, where `composer run dev` brings up the Sail
-      services (postgres, redis, mailpit) and runs the concurrent processes.
-      The dev queue worker is `horizon:watch` (spatie/laravel-horizon-watcher,
-      dev dep + `chokidar` in package.json) — Horizon that auto-restarts on
-      file change so job edits don't run stale code. Register it into the dev
-      runner from `AppServiceProvider` via `DevCommands` in a `booted()`
-      callback (except both `queue` and `horizon`; `except()` replaces, so run
-      last), with `--without-tty` (the dev runner has no per-process TTY). Guard production two ways: a pre-install
-      `getenv('APP_ENV')` shell check (exported env) plus an
-      `app:ensure-development` artisan command after `.env` exists (boots the
-      framework, so it also catches a `.env`-only production flag that
-      getenv can't see)
+      migrate --seed → npm build. All of this runs **in the container**
+      (`sail artisan …`, `sail composer …`). Bootstrap for a fresh clone with
+      zero host tooling: `docker run --rm -v $(pwd):/var/www/html -w
+      /var/www/html laravelsail/php85-composer composer install`, then
+      `sail up -d` (builds the app image first run) and the setup steps via
+      `sail`. Guard production two ways: a pre-install `getenv('APP_ENV')`
+      shell check (exported env) plus an `app:ensure-development` artisan
+      command after `.env` exists (boots the framework, so it also catches a
+      `.env`-only production flag that getenv can't see)
 - [ ] README "Production release" section: --no-dev optimized install,
       npm ci build, migrate --force, config/route/view/event cache,
       horizon:terminate; first-deploy AppSettingsSeeder +
       app:create-developer
-- [ ] README with setup instructions for a new dev pulling this repo fresh —
-      two explicit paths: hybrid (host PHP + `sail up -d redis mailpit` for
-      services; the default) and full Sail (no host PHP; container hostnames
-      in .env, everything via `./vendor/bin/sail`). State Docker Desktop as a
-      prerequisite and end setup with `app:create-developer` + `app:doctor`
+- [ ] README with setup instructions for a new dev — **one path only:
+      Docker via Sail** (Docker Desktop the sole prerequisite; no host
+      PHP/Node). Fresh-clone bootstrap = composer-container install → `sail up
+      -d` → migrate/seed/build via `sail` → `app:doctor`. Document the `sail`
+      alias, `sail restart horizon` for job edits, and Xdebug via
+      `SAIL_XDEBUG_MODE` (ships in the image). Pre-commit hook runs the triad
+      inside Sail. The pre-commit hook, CI, and `.env` service-name/127.0.0.1
+      split are the only host-vs-container seams left.
 - [ ] Tag/release as `v1.0.0` of the boilerplate itself, so future
       boilerplate improvements are versioned and back-portable to projects
       that already forked it
