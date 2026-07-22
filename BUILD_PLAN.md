@@ -358,8 +358,9 @@ section of BOILERPLATE.md:
       `declare(strict_types=1)` from `bootstrap/providers.php`, and
       `sail:install` clobbers the phpunit sqlite `:memory:` DB env — restore
       both.
-- [ ] `composer require laravel/horizon laravel/pulse predis/predis`, publish
-      Pulse, migrate. Both dashboards go behind `EnsureDeveloper` via their
+- [ ] `composer require laravel/pulse`, publish Pulse, migrate (Horizon +
+      Predis were installed in Phase 6). Both dashboards go behind
+      `EnsureDeveloper` via their
       config `middleware` arrays; the `viewHorizon` gate checks the
       `developer` guard; nav links added to the /devtools panel;
       `horizon:snapshot` scheduled every five minutes; `PULSE_ENABLED=false`
@@ -387,13 +388,15 @@ section of BOILERPLATE.md:
       conventions above it (the generator's CLAUDE.md copy omits the block).
       Re-run `boost:update` after major package changes. Add the optional
       doctor row.
-- [ ] Error monitoring is **deferred (no budget)** — do not install/wire it
-      in v1. When added: Sentry Laravel SDK with DSN pointed at self-hosted
-      GlitchTip (swap to hosted later via env var, no code change). Laravel
-      Pulse is the free first-party baseline (database driver is fine);
-      Horizon waits on a deliberate Redis decision.
-- [ ] Confirm queue worker + `failed_jobs` surfaced in monitoring (a silently
-      dead worker is the failure mode to catch)
+- [ ] Error monitoring (Sentry/GlitchTip) is **deferred (no budget)** — do
+      not install/wire it in v1. When added: Sentry Laravel SDK with DSN
+      pointed at self-hosted GlitchTip (swap to hosted later via env var, no
+      code change). Pulse (in-app metrics) and Horizon (queue monitoring) are
+      already installed above behind `/devtools` — this defers only external
+      error tracking.
+- [ ] Confirm Horizon surfaces `failed_jobs` and queue throughput (its
+      dashboard is the monitoring surface; a silently dead Horizon is the
+      failure mode to catch)
 
 ## Phase 9 — Final pass
 

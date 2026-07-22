@@ -695,7 +695,7 @@ introduced.
       **Sentry Laravel SDK but point its DSN at self-hosted GlitchTip**
       (Sentry-API compatible → swap to hosted Sentry later via one env var,
       no code change). **Laravel Pulse** (free, first-party, in-app metrics)
-      is the day-one baseline when monitoring is wanted. Telescope runs in
+      is installed behind `/devtools` (with Horizon for queue monitoring). Telescope runs in
       **every environment** behind the `/devtools` developer panel (separate
       `developers` table + guard); production records only failures, slow
       queries, and monitored entries, with `telescope:prune` scheduled.
