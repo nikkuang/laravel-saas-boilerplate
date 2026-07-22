@@ -10,6 +10,7 @@
 | Layer | Choice | Why |
 |---|---|---|
 | Backend | Laravel (latest) | Existing deep expertise |
+| Database | PostgreSQL (via Sail/Docker) | Prod parity + real concurrency; SQLite's single-writer locking caused intermittent cached-object corruption |
 | Authenticated app UI | Inertia + Vue 3 + Pinia | Reuses existing Vue/Nuxt skill 1:1, app-like interactivity |
 | Public/marketing pages | Blade (+ Alpine.js for light interactivity) | SEO, fast load, no SPA bootstrap cost |
 | Admin panel | Filament (Livewire-based) | CRUD-heavy internal tooling, don't reinvent |

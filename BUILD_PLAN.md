@@ -41,7 +41,12 @@ rather than silently deviating.
       Faker, Mockery, Collision, Pail, Tinker). If assembling manually instead
       of from the kit, install those too — don't rely on this list for them.
 - [ ] Set up `.env.example` with all required keys documented (DB, mail,
-      social login credentials, etc. — no Stripe/Sentry yet, both deferred)
+      social login credentials, etc. — no Stripe/Sentry yet, both deferred).
+      **Database is PostgreSQL, not SQLite** — dev/CI/prod all run Postgres so
+      there's no driver skew (SQLite's single-writer locking caused
+      intermittent cached-object corruption under concurrent
+      web+worker+Pulse access). `DB_CONNECTION=pgsql`, host `127.0.0.1` on
+      Path A / `pgsql` on Path B.
 - [ ] Configure Pint (enforce `declare(strict_types=1)` + native type hints)
       + Larastan at **`max` level** — a missing/loose type fails CI. Full type
       coverage and typed DTOs over associative arrays at layer boundaries (see
@@ -316,7 +321,11 @@ section of BOILERPLATE.md:
       authorization / 403 assertion for a Policy-gated endpoint
 - [ ] Run Pint + Larastan (`max`) + Pest before commit (optionally a
       pre-commit hook) — Larastan locally enforces the strict-typing rules
-- [ ] GitHub Actions workflow: run Pest + Pint + Larastan on every PR
+- [ ] GitHub Actions workflow: run Pest + Pint + Larastan on every PR.
+      **Tests run on PostgreSQL, not SQLite in-memory** (dev/CI/prod
+      parity — catches driver-specific issues): phpunit points at a
+      `testing` database; CI adds a `postgres:17` service and creates
+      that database. Slower than :memory:, deliberately.
 - [ ] Committed `.githooks/`: pre-commit (Pint --dirty + Larastan + Pest when
       PHP staged; ESLint/Prettier checks when JS/TS staged) and commit-msg
       (Conventional Commits regex, merge/fixup exempt). Activate via
@@ -366,14 +375,14 @@ section of BOILERPLATE.md:
       shared email can't collide). The Developer model already satisfies
       `CanResetPassword` via `Foundation\Auth\User` + `Notifiable`; Filament's
       reset notification is `ShouldQueue`. Test the broker isolation.
-- [ ] Local services via Sail: `php artisan sail:install --with=redis,mailpit`
-      publishes the compose file (Redis + Mailpit, ports forwarded to
-      localhost). Point `.env` at 127.0.0.1 when the app runs on the host;
+- [ ] Local services via Sail: `php artisan sail:install --with=pgsql,redis,mailpit`
+      publishes the compose file (PostgreSQL 17 + Redis + Mailpit, ports
+      forwarded to localhost; the pgsql service mounts Sail's
+      create-testing-database.sql so a `testing` DB exists for the suite). Point `.env` at 127.0.0.1 when the app runs on the host;
       `MAIL_MAILER=smtp` port 1025, Mailpit UI on 8025, `REDIS_CLIENT=predis`.
       Watch installer collateral: `horizon:install` strips
       `declare(strict_types=1)` from `bootstrap/providers.php`, and
-      `sail:install` clobbers the phpunit sqlite `:memory:` DB env — restore
-      both.
+      `sail:install` clobbers the phpunit DB env — restore both.
 - [ ] `composer require laravel/pulse`, publish Pulse, migrate (Horizon +
       Predis were installed in Phase 6). Both dashboards go behind
       `EnsureDeveloper` via their
@@ -420,7 +429,7 @@ section of BOILERPLATE.md:
 - [ ] Copy `BOILERPLATE.md` into repo root or `/docs`
 - [ ] `composer run setup` = the complete, idempotent dev bootstrap
       (env-guarded against production; ends with `app:doctor`): install →
-      hooks → .env/key-if-missing → sqlite touch → sail services →
+      hooks → .env/key-if-missing → sail services (postgres/redis/mailpit) →
       migrate --seed (seeder must be idempotent and seed the local
       dev@example.com developer) → npm install/build. README Path A becomes
       clone + setup + dev, where `composer run dev` brings up the Sail

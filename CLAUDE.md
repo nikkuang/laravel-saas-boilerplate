@@ -196,6 +196,11 @@ giving DTOs, enums, and business logic their own place:
   strings/ints. Status, type, and severity columns get a backed enum (e.g.
   `AnnouncementType`) cast in `casts()`, so the value is type-safe from DB →
   DTO → response. `ApiErrorCode` is the existing example.
+- **The database is PostgreSQL in every environment** (dev via Sail,
+  CI, and prod) — no SQLite, so there's no driver skew and migrations
+  run against the real engine. Tests use a dedicated `testing` Postgres
+  database (parity over speed). Cache and sessions stay on the database
+  driver, which is now Postgres.
 - **Mass-assignment is explicit.** Every model declares `$fillable`
   (allow-list, preferred) or `$guarded` — no `$guarded = []` free-for-all. With
   Eloquent strict mode on, filling an attribute outside `$fillable` throws in
