@@ -286,10 +286,15 @@ giving DTOs, enums, and business logic their own place:
   hand-written conventions stay above it, and the generator repo's copy of
   this file deliberately omits it.
 - `composer run dev` is the one-command local start: it brings up the Sail
-  services (Redis, Mailpit) and runs the concurrent dev processes. Horizon —
-  not `queue:listen` — is the queue worker (Horizon's own `dev` integration
-  swaps it in), so local matches production and the /devtools Horizon
-  dashboard is live; restart the runner to pick up job-class changes.
+  services (Postgres, Redis, Mailpit) and runs the concurrent dev processes.
+  The queue worker is **`horizon:watch`** (spatie/laravel-horizon-watcher) —
+  Horizon (so local matches production and the /devtools dashboard is live)
+  that **auto-restarts on file changes**, so job edits never run stale worker
+  code. `AppServiceProvider` registers it into the dev runner via
+  `DevCommands` in a `booted()` callback (last word over Horizon's own
+  registration), excepting both `queue` and `horizon`, and adds `--without-tty`
+  (the dev runner has no per-process TTY). Local only; `chokidar` is a dev
+  dependency the watcher needs.
 - `composer run sync` regenerates the API contract artifacts (Scramble
   `openapi.json` + generated TypeScript types) — run it after route or
   DTO/enum changes; the Bruno collection stays a manual re-sync.
