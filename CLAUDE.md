@@ -28,8 +28,9 @@
   hooks (`mutateFormDataBeforeSave`, action closures, table actions, etc.).
   Filament classes stay as thin as controllers.
 - **Never mix Livewire and Inertia on the same page.** Filament owns
-  `/admin` and nothing outside it uses Livewire. Everything authenticated
-  outside `/admin` is Inertia + Vue. Everything public/guest is Blade.
+  `/admin` (business admin) and `/devtools` (developer/ops panel) — nothing
+  outside those uses Livewire. Everything authenticated outside them is
+  Inertia + Vue. Everything public/guest is Blade.
 - **Never return raw Eloquent models from API controllers.** Always wrap in
   an API Resource.
 - **Multi-write operations wrap in `DB::transaction()`, inside the service.**
@@ -236,6 +237,23 @@ giving DTOs, enums, and business logic their own place:
 - Default driver is database (no Redis assumed). Don't add Redis/Horizon as
   a hard dependency without raising it — it changes every environment's infra
   requirements.
+
+## Dev tools & observability
+
+- Telescope ships in **every environment** — never regress it to a dev-only
+  package. Access is gated by the `developer` session guard: a separate
+  `developers` table + Filament panel at `/devtools`, fully disjoint from app
+  users and admins (`is_admin` grants nothing here). Seed the first account
+  with `php artisan app:create-developer`.
+- `/telescope` (and later `/pulse`, `/horizon`) routes are protected by the
+  shared `EnsureDeveloper` middleware — new dev tools reuse it rather than
+  inventing a second gate, and get a navigation link in the `/devtools` panel.
+- Recording: everything outside production; production records only failures,
+  slow queries, and monitored entries. `telescope:prune` is on the scheduler —
+  keep it there, or `telescope_entries` grows unbounded.
+- Pulse is planned (database driver is fine). Horizon waits on a deliberate
+  Redis decision — the queue stays on the database driver until that's raised
+  explicitly.
 
 ## Events & observers
 

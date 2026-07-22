@@ -306,12 +306,42 @@ section of BOILERPLATE.md:
 - [ ] Confirm CI fails on a deliberately broken test (sanity check the
       pipeline actually works)
 
-## Phase 8 — Observability
+## Phase 8 — Observability & dev tools
 
+- [ ] `composer require laravel/telescope` as a **production dependency**
+      (not `--dev`): Telescope ships in every environment, gated by auth —
+      never dev-only. `telescope:install` + migrate. Keep
+      `TELESCOPE_ENABLED=true` in `phpunit.xml` (routes only register when
+      enabled, and the route-protection tests need them; the recording
+      filter returns false under tests so nothing is stored).
+- [ ] Devtools surface: `developers` table + `Developer` model (no soft
+      deletes — deleting a developer is an access revocation and must be
+      immediate) + `developer` session guard/provider in `config/auth.php`,
+      then a **second Filament panel** at `/devtools`
+      (`->authGuard('developer')`) with a Developers CRUD resource and
+      external nav links to the tools. Completely disjoint from app
+      users/admins — `is_admin` grants nothing here.
+- [ ] `EnsureDeveloper` middleware (redirects to `/devtools/login` unless
+      `auth('developer')->check()`) replaces Telescope's stock `Authorize`
+      in `config/telescope.php`. Pulse and Horizon reuse this same
+      middleware when added — one gate for all dev tools.
+- [ ] Recording filter in `TelescopeServiceProvider`: everything outside
+      production; production keeps only exceptions, failed requests/jobs,
+      slow queries, scheduled tasks, and monitored tags. Schedule
+      `telescope:prune` daily (staging records everything — pruning is what
+      bounds the table).
+- [ ] `app:create-developer` artisan command (Laravel Prompts) to seed the
+      first developer per environment.
+- [ ] Feature tests: guests, app users, and `/admin` admins are all
+      redirected off `/telescope` and `/devtools`; a `developer`-guard
+      session gets 200. (Note: `actingAs($dev, 'developer')` also switches
+      the default guard — reset with `auth()->shouldUse('web')` to mirror
+      real requests.)
 - [ ] Error monitoring is **deferred (no budget)** — do not install/wire it
       in v1. When added: Sentry Laravel SDK with DSN pointed at self-hosted
       GlitchTip (swap to hosted later via env var, no code change). Laravel
-      Pulse is the free first-party baseline; Telescope local/staging only.
+      Pulse is the free first-party baseline (database driver is fine);
+      Horizon waits on a deliberate Redis decision.
 - [ ] Confirm queue worker + `failed_jobs` surfaced in monitoring (a silently
       dead worker is the failure mode to catch)
 
